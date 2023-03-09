@@ -41,7 +41,7 @@ class RangefinderSimulator:
 
         # Latest LOCAL_POSITION_NED msg, wait for the EKF to settle, etc.
         self.local_position_ned_msg = None
-        # self.wait_for_local_position_ned_msg()
+        self.wait_for_local_position_ned_msg()
 
     # Run QGroundControl to get the messages flowing
     # TODO have an option to start the streams w/o QGroundControl running
@@ -60,18 +60,15 @@ class RangefinderSimulator:
 
     # Latest sub z position
     def sub_z(self):
-        # return -self.local_position_ned_msg.z
-        return -0.2
+        return -self.local_position_ned_msg.z
 
     # Time since boot
     def time_boot_ms(self):
-        # return int(self.local_position_ned_msg.time_boot_ms)
-        return 0
+        return int(self.local_position_ned_msg.time_boot_ms)
 
     # Timestamp, should match the timestamps in tlogs
     def timestamp(self):
-        # return getattr(self.local_position_ned_msg, '_timestamp', 0.0)
-        return 0.0
+        return getattr(self.local_position_ned_msg, '_timestamp', 0.0)
 
     def run(self):
         # Open the output file once

@@ -299,6 +299,8 @@ In the altitude section you can see the controller responding quickly to the ran
 In the rangefinder section, you can see that the rangefinder readings stay in a fairly small band, indicating that
 the controller is doing a reasonable job keeping the sub at a fixed distance above the terrain.
 
+> TODO injected rf appears to lag the CTUN rf, which seems wrong. Investigate
+
 ### surftrak in SITL (sawtooth)
 
 The [sawtooth terrain graph](logs/sitl/surftrak/sawtooth/merged.pdf) shows a sharp jump up 4m,
