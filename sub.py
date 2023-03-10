@@ -66,15 +66,11 @@ class RangefinderSimulator:
     def time_boot_ms(self):
         return int(self.local_position_ned_msg.time_boot_ms)
 
-    # Timestamp, should match the timestamps in tlogs
-    def timestamp(self):
-        return getattr(self.local_position_ned_msg, '_timestamp', 0.0)
-
     def run(self):
         # Open the output file once
         with open('stamped_terrain.csv', mode='w', newline='') as outfile:
             datawriter = csv.writer(outfile, delimiter=',', quotechar='|')
-            datawriter.writerow(['timestamp', 'terrain_z', 'sub_z', 'rf'])
+            datawriter.writerow(['TimeUS', 'terrain_z', 'sub_z', 'rf'])
     
             # Continue until the user hits ctrl-C
             while True:
@@ -109,7 +105,7 @@ class RangefinderSimulator:
                         elif rf > MAX_MEASUREMENT_M:
                             rf = MAX_MEASUREMENT_M
     
-                        print(f'timestamp {self.timestamp()}, terrain_z {terrain_z}, sub_z {self.sub_z()}, rf {rf}')
+                        print(f'time_boot_ms {self.time_boot_ms()}, terrain_z {terrain_z}, sub_z {self.sub_z()}, rf {rf}')
     
                         # TODO add some noise
                         # TODO model Ping sonar, which has some smoothing and lag
@@ -124,8 +120,9 @@ class RangefinderSimulator:
                             SENSOR_ID,
                             ORIENTATION,
                             COVARIANCE)
-    
-                        datawriter.writerow([self.timestamp(), terrain_z, self.sub_z(), rf])
+
+                        # Generate TimeUS (time-since-boot in microseconds) to match the CTUN msg
+                        datawriter.writerow([self.time_boot_ms() * 1000, terrain_z, self.sub_z(), rf])
                         outfile.flush()
     
                         time.sleep(interval)
