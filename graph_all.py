@@ -68,7 +68,9 @@ plt.rcParams['lines.linewidth'] = 0.5
 # Generate CTUN graphs (update this list as needed)
 graph_ctun('logs/gazebo/auto_alt/ctun.csv', 'logs/gazebo/auto_alt/ctun.pdf')
 graph_ctun('logs/gazebo/surftrak/ctun.csv', 'logs/gazebo/surftrak/ctun.pdf')
+graph_ctun('logs/gazebo/surftrak_4_1/ctun.csv', 'logs/gazebo/surftrak_4_1/ctun.pdf')
 
 # Generate merged graphs (update this list as needed)
 graph_merged('logs/sitl/surftrak/sawtooth/merged.csv', 'logs/sitl/surftrak/sawtooth/merged.pdf')
 graph_merged('logs/sitl/surftrak/trapezoid/merged.csv', 'logs/sitl/surftrak/trapezoid/merged.pdf')
+graph_merged('logs/sitl/surftrak_4_1/trapezoid/merged.csv', 'logs/sitl/surftrak_4_1/trapezoid/merged.pdf')

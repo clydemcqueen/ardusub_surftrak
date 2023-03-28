@@ -26,8 +26,6 @@ The SITL setup is simpler to install and uses known terrain data so the experime
 The SITL setup uses MAVLink and LOCAL_POSITION_NED messages to generate rangefinder values from the terrain data.
 This setup introduces some lag.
 
-> TODO investigate the lag
-
 The SITL setup behaved poorly in tests of auto_alt: the z value was much greater than 0, indicating that the sub 
 was floating in the air. 
 
@@ -42,8 +40,6 @@ through the simulated world, so each experiment is unique.
 # Procedure
 
 ## Install
-
-> TODO create a Dockerfile
 
 Install ArduPilot from https://github.com/clydemcqueen/ardupilot in `~/ardupilot`
 
@@ -93,8 +89,6 @@ Launch SITL. Add the `-w` option to wipe the EEPROM and load default parameters:
 ~~~
 sim_vehicle.py -w -L 'seattle aquarium' -v ArduSub
 ~~~
-
-> TODO load EK2 params to match supported ArduSub firmware
 
 Configure the autopilot to use a MAVLink rangefinder backend:
 ~~~
@@ -278,8 +272,6 @@ Variables graphed in the altitude section:
 * Injection-time z: the z value used by the data injector
 * Terrain z: the simulated terrain height
 
-> TODO is GPS data fused as well? If so, disable the GPS inputs
-
 Variables graphed in the rangefinder section:
 * CTUN target rangefinder: the target rangefinder value that the controller is trying to achieve
 * CTUN rangefinder: the current rangefinder reading (the noise is simulated)
@@ -323,8 +315,21 @@ section. More investigation is required.
 
 > TODO how does the IMU influence the EKF in this case? What about GPS?
 
+### surftrak_4_1
+
+_Added 28-Mar-2023_
+
+The original surftrak changes were made to the ardupilot `master` branch, but the current stable version of ArduSub is 
+on the `Sub-4.1` branch. To make it easier to test surftrak on real hardware I copied the changes to a new branch
+`clyde_surftrak_4_1` and did some additional testing in simulation. See:
+* [surftrak_4_1 in SITL, trapezoid](logs/sitl/surftrak_4_1/trapezoid/merged.pdf)
+* [surftrak_4_1 in Gazebo](logs/gazebo/surftrak_4_1/ctun.pdf)
+
+The results are similar to the version of surftrak on master, though there is a noticeable oscillation in SITL.
+
+> Investigate the oscillation on SITL
+
 # Future Work
 
-* address the various TODOs
-* improve surftrak performance by adjusting the various parameters
-* run the surftrak controller on a live sub, and analyze the logs
+* test on real ROVs
+* add an ALTITUDE_HOLD mode so the pilot can easily flip between DEPTH_HOLD and ALTITUDE_HOLD
