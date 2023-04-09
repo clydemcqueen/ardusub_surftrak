@@ -2,8 +2,8 @@
 
 We propose a [surface (seafloor) tracking feature for ArduSub](https://github.com/clydemcqueen/ardupilot/tree/clyde_surftrak)
 inspired by the [surface tracking feature in ArduCopter](https://ardupilot.org/copter/docs/terrain-following-manual-modes.html).
-Surface tracking in ArduSub requires a down-facing rangefinder (e.g., the Blue Robotics Ping Sonar) and can be enabled
-in ALT_HOLD mode to allow the vehicle to maintain a constant altitude above the terrain.
+Surface tracking in ArduSub requires a down-facing rangefinder (e.g., the Blue Robotics Ping Sonar) and is activated by
+selecting the new RNG_HOLD flight mode.
 
 The [auto altitude control feature](https://discuss.bluerobotics.com/t/altimeter-and-auto-altitude/2039) was proposed previously.
 This feature works by feeding rangefinder data into the ArduPilot EKF as the z position, replacing the barometer input.
@@ -45,7 +45,7 @@ Install ArduPilot from https://github.com/clydemcqueen/ardupilot in `~/ardupilot
 
 Install https://github.com/clydemcqueen/ardusub_surftrak in `~/projects/ardusub_surftrak`
 
-Install https://github.com/clydemcqueen/bluerov2_ignition in `~/colcon_ws/src/bluerov2_ignition` and check out the `ping_sonar` branch
+Install https://github.com/clydemcqueen/bluerov2_ignition in `~/colcon_ws/src/bluerov2_ignition` and checkout the `ping_sonar` branch
 
 Install https://github.com/ArduPilot/ardupilot_gazebo in `~/simulation/ardupilot_gazebo`
 
@@ -71,7 +71,7 @@ export GZ_SIM_RESOURCE_PATH=$HOME/simulation/ardupilot_gazebo/models:$HOME/simul
 export GZ_SIM_RESOURCE_PATH=$HOME/colcon_ws/src/bluerov2_ignition/models:$HOME/colcon_ws/src/bluerov2_ignition/worlds:$GZ_SIM_RESOURCE_PATH
 ~~~
 
-Launch QGroundControl and leave it running during the experiements. QGroundControl serves a few purposes:
+Launch QGroundControl and leave it running during the experiments. QGroundControl serves a few purposes:
 * It sends MAV_DATA_STREAM messages to ArduSub activating various data streams. In particular,
 the rangefinder data injector [sub.py](sub.py) needs LOCAL_POSITION_NED messages to function.
 * It will allow you to use a wider variety of joysticks for control.
@@ -87,7 +87,7 @@ git checkout clyde_surftrak
 
 Launch SITL. Add the `-w` option to wipe the EEPROM and load default parameters:
 ~~~
-sim_vehicle.py -w -L 'seattle aquarium' -v ArduSub
+sim_vehicle.py -w -L RATBeach -v ArduSub
 ~~~
 
 Configure the autopilot to use a MAVLink rangefinder backend:
@@ -102,16 +102,11 @@ param set RNGFND1_POS_Z -0.095
 param set SIM_SONAR_SCALE 10    # Unscale
 ~~~
 
-Turn on surftrak mode:
-~~~
-param set SURFTRAK_MODE 1
-~~~
-
 Quit ArduSub.
 
 Launch SITL again, this time drop the `-w` option to avoiding wiping the EEPROM:
 ~~~
-sim_vehicle.py -L 'seattle aquarium' -v ArduSub
+sim_vehicle.py -L RATBeach -v ArduSub
 ~~~
 
 Get into position by arming and diving to -10m:
@@ -132,7 +127,12 @@ Waiting for LOCAL_POSITION_NED msg on udpin:localhost:14551...
 timestamp 1678220000.4566069, terrain_z -20.0, sub_z -7.645134449005127, rf 12.354865550994873
 ~~~
 
-Switch to ALT_HOLD mode. You should see output like this in mavproxy showing that surftrak is running:
+Switch to RNG_HOLD mode in mavproxy:
+~~~
+mode 21
+~~~
+
+You should see output like this in mavproxy showing that surftrak is running:
 ~~~
 AP: rangefinder target is 9.83401 m
 ~~~
@@ -164,6 +164,8 @@ Run the same basic procedure as above, but with the following changes.
 
 For surftrak, use the `clyde_surftrak` branch in ardupilot. For auto_alt use the `master` branch.
 
+For surftrak use RNG_HOLD mode, for auto_alt use ALT_HOLD.
+
 Wipe the EEPROM with `-w` and set up the parameters again.
 
 Set up the `ardupilot_gazebo` rangefinder:
@@ -176,11 +178,6 @@ param set RNGFND1_ORIENT 25       # Down
 param set RNGFND1_POS_X -0.18
 param set RNGFND1_POS_Y 0.0
 param set RNGFND1_POS_Z -0.095
-~~~
-
-For surftrak use this param:
-~~~
-param set SURFTRAK_MODE 1
 ~~~
 
 For auto_alt use this param:
@@ -329,7 +326,36 @@ The results are similar to the version of surftrak on master, though there is a 
 
 > Investigate the oscillation on SITL
 
+# Pilot interface
+
+_Added 8-Apr-2023_
+
+The new RNG_HOLD (range hold) mode uses the ALT_HOLD (altitude hold) logic to hold a target depth, but it uses healthy
+rangefinder readings to change that target depth.
+
+Rangefinder readings are healthy if:
+* there is a down-facing rangefinder installed
+* the readings are within the range specified in the various RNGFND* parameters
+* the readings don't time out (currently set for 1s)
+* the readings are consistent (they aren't bouncing around)
+
+If the rangefinder becomes unhealthy then the depth target is not changed and RNG_HOLD behaves exactly like ALT_HOLD.
+If the rangefinder becomes healthy again RNG_HOLD will get a new target distance and start changing the target depth in
+response to rangefinder readings.
+
+The pilot can enter RNG_HOLD even if the seafloor is out of range; as soon as the seafloor is in range it will grab
+a target distance and start holding that distance.
+
+To activate RNG_HOLD in mavproxy, enter command `mode 21`.
+
+To associate RNG_HOLD with a joystick button in QGroundControl:
+* Select Vehicle Setup > Parameters
+* Select the `BTNx_FUNCTION` or `BTNx_SFUNCTION` parameter for the button you want to map to RNG_HOLD
+* In the Parameter Editor, select Advanced Settings
+* Select Manual Entry
+* Type `13` in the edit box
+* Select Save
+
 # Future Work
 
 * test on real ROVs
-* add an ALTITUDE_HOLD mode so the pilot can easily flip between DEPTH_HOLD and ALTITUDE_HOLD
