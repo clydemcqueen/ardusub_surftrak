@@ -1,1 +1,12 @@
 .idea/
+__pycache__/
+
+# Ignore ardusub outputs
+logs/
+eeprom.bin
+
+# Commit just a few of the SITL results (they are easy to recreate)
+results/sitl/
+!results/sitl/surftrak/sawtooth
+!results/sitl/surftrak/trapezoid
+!results/sitl/surftrak_4_1/trapezoid

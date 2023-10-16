@@ -13,6 +13,10 @@ INTERVAL = 0.1
 # Nominal seafloor depth
 SEAFLOOR_Z = -20.0
 
+# Positive terrain values cause special behavior
+DROPOUT = 1.0               # Do not send message
+LOW_SIGNAL_QUALITY = 2.0    # Send signal_quality = 10
+
 
 # csv files are saved in a directory which is not checked in
 def csv_path(prefix):
@@ -30,6 +34,16 @@ def write_ramp_segment(writer, start: float, stop: float, rate: float):
     for i in range(num):
         adj = round(start + i * step, 2)
         writer.writerow([SEAFLOOR_Z + adj])
+
+
+def write_dropouts(writer, t: float):
+    for i in range(int(t / INTERVAL)):
+        writer.writerow([DROPOUT])
+
+
+def write_low_signal_quality(writer, t: float):
+    for i in range(int(t / INTERVAL)):
+        writer.writerow([LOW_SIGNAL_QUALITY])
 
 
 def gen_zeros():
@@ -86,6 +100,57 @@ def gen_square(tallest_bump: float, t=10.0):
         write_flat_segment(datawriter, tallest_bump, t)
 
 
+# Stress PID controllers, test dropout handling
+def gen_stress(tallest_bump=8.0, t=2.0):
+    # Open for writing. Do not translate newlines.
+    with open(csv_path('stress'), mode='w', newline='') as csvfile:
+        datawriter = csv.writer(csvfile, delimiter=',', quotechar='|')
+
+        # Write the interval
+        datawriter.writerow([INTERVAL])
+
+        # Start with a long low segment
+        write_flat_segment(datawriter, 0.0, 4 * t)
+
+        # Dropout, then resume
+        write_dropouts(datawriter, t)
+        write_flat_segment(datawriter, tallest_bump, t)
+
+        # Jump to very high segment, with dropout
+        write_flat_segment(datawriter, tallest_bump, t)
+
+        # Dropout, then resume
+        write_dropouts(datawriter, t)
+        write_flat_segment(datawriter, tallest_bump, t)
+
+        # Dropout, then resume at a very different height
+        write_dropouts(datawriter, t)
+        write_flat_segment(datawriter, 0.0, t)
+        write_flat_segment(datawriter, tallest_bump, t)
+
+
+# Test low signal_quality
+def gen_test_signal_quality():
+    # Open for writing. Do not translate newlines.
+    with open(csv_path('test_signal_quality'), mode='w', newline='') as csvfile:
+        datawriter = csv.writer(csvfile, delimiter=',', quotechar='|')
+
+        # Write the interval
+        datawriter.writerow([INTERVAL])
+
+        # Start "on the dock"
+        write_low_signal_quality(datawriter, t=4)
+
+        # Normal, in the water
+        write_flat_segment(datawriter, adj=0.0, t=4)
+
+        # Bad readings
+        write_low_signal_quality(datawriter, t=4)
+
+        # Resume, jump
+        write_flat_segment(datawriter, adj=2.0, t=4)
+
+
 def main():
     tallest_bump = 4.0
     rate = 0.25  # m / sec
@@ -94,6 +159,8 @@ def main():
     gen_trapezoid(tallest_bump, rate)
     gen_sawtooth(tallest_bump, rate)
     gen_square(tallest_bump)
+    gen_stress()
+    gen_test_signal_quality()
 
 
 if __name__ == '__main__':
