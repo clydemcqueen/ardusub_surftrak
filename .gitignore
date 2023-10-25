@@ -10,3 +10,6 @@ results/sitl/
 !results/sitl/surftrak/sawtooth
 !results/sitl/surftrak/trapezoid
 !results/sitl/surftrak_4_1/trapezoid
+
+# Ignore tmp folder
+tmp/
