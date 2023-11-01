@@ -7,5 +7,5 @@
 mkdir -p $LOG_DIR
 mavlogdump.py --types CTUN --format csv $BIN_FILE > $LOG_DIR/ctun.csv
 mv stamped_terrain.csv $LOG_DIR
-merge_logs.py
-graph_sitl.py
+python merge_logs.py
+python graph_sitl.py

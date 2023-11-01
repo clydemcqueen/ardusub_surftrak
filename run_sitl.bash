@@ -23,6 +23,6 @@ rm logs/LASTLOG.TXT
 python sitl_runner.py --terrain terrain/$TERRAIN.csv --speedup $SPEEDUP --time $DURATION
 
 # Graph results
-LOG_DIR=results/sitl/$VERSION/$TERRAIN
-BIN_FILE=logs/00000001.BIN
+export LOG_DIR=results/sitl/$VERSION/$TERRAIN
+export BIN_FILE=logs/00000001.BIN
 source process_sitl.bash

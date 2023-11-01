@@ -124,9 +124,6 @@ Install Gazebo Garden
 
 Set up some paths:
 ~~~
-# Add ardusub_surftrak
-export PATH=$HOME/projects/ardusub_surftrak:$PATH
-
 # Add ardupilot autotest to the PATH
 export PATH=$HOME/ardupilot/Tools/autotest:$PATH
 
