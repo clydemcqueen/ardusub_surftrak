@@ -20,16 +20,20 @@ import mavutil2
 from gen_terrain import DROPOUT, LOW_SIGNAL_QUALITY
 
 
-def start_ardusub(speedup: float):
+def start_ardusub(speedup: float, heavy: bool):
     ardupilot_home = os.environ.get('ARDUPILOT_HOME')
+    model = 'vectored_6dof' if heavy else 'vectored'
+    default_params = f'{ardupilot_home}/Tools/autotest/default_params/sub{"-6dof" if heavy else ""}.parm'
+
+    # Using --wipe should do the same thing as -w, but the STAT_BOOTCNT parameter always comes back as 1.
+    # This seems like a bug somewhere. See mavutil2.reboot_autopilot for usage.
     subprocess.Popen([
         f'{ardupilot_home}/build/sitl/bin/ardusub',
-        '-S',
-        '-w',  # Wipe parameters
-        '--model', 'vectored',
+        '--synthetic-clock',
+        '-w',
+        '--model', model,
         '--speedup', f'{speedup :.2f}',
-        '--slave', '0',
-        '--defaults', f'{ardupilot_home}/Tools/autotest/default_params/sub.parm',
+        '--defaults', default_params,
         '--sim-address=127.0.0.1',
         '-I0',
         '--home', f'47.607886,-122.344324,-0.1,0.0',
@@ -131,7 +135,7 @@ class SimRunner:
         apm2.MAVLINK_MSG_ID_GLOBAL_POSITION_INT: 5,
     }
 
-    def __init__(self, speedup: float, duration: int, terrain, delay):
+    def __init__(self, speedup: float, duration: int, terrain, delay: float, heavy: bool):
         # self.clock is used by self.print, so set this early
         self.clock = None
 
@@ -143,7 +147,7 @@ class SimRunner:
         self.sub_z_history = SubZHistory()
 
         self.print('Start ArduSub')
-        start_ardusub(speedup)
+        start_ardusub(speedup, heavy)
 
         self.print('Connect to ArduSub')
         self.conn = mavutil.mavlink_connection(
@@ -281,8 +285,9 @@ def main():
     parser.add_argument('--time', type=int, default=60, help='how long to run the simulation')
     parser.add_argument('--terrain', type=str, default='terrain/zeros.csv', help='terrain file')
     parser.add_argument('--delay', type=float, default=0.8, help='Ping sensor delay in seconds')
+    parser.add_argument('--heavy', action='store_true', help='Use heavy (6dof) config')
     args = parser.parse_args()
-    runner = SimRunner(args.speedup, args.time, args.terrain, args.delay)
+    runner = SimRunner(args.speedup, args.time, args.terrain, args.delay, args.heavy)
     runner.run()
 
 

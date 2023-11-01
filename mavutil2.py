@@ -87,15 +87,17 @@ def reboot_autopilot(conn: mavutil.mavfile):
 
     TODO add a timeout
     """
-    boot_count = get_boot_count(conn)
+    prev_boot_count = get_boot_count(conn)
 
     conn.reboot_autopilot()
     conn.wait_heartbeat()
 
-    if get_boot_count(conn) - boot_count == 1:
+    curr_boot_count = get_boot_count(conn)
+    if curr_boot_count - prev_boot_count == 1:
+        print(f'STAT_BOOTCNT was {prev_boot_count}, now {curr_boot_count}, reboot detected')
         return
     else:
-        raise RebootFailedException(f'Boot count did not increment')
+        raise RebootFailedException(f'STAT_BOOTCNT was {prev_boot_count}, now {curr_boot_count}, reboot not detected')
 
 
 class SimClock:
