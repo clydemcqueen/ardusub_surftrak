@@ -2,12 +2,20 @@
 
 """
 Run an ArduSub simulation.
+
+Interesting sub modes:
+      2             alt_hold
+      3             auto
+      7             circle
+     21             rng_hold
 """
 
 import argparse
 import csv
+import numpy as np
 import os
 import subprocess
+from typing import Optional
 
 from pymavlink.dialects.v20 import ardupilotmega as apm2
 
@@ -17,7 +25,14 @@ os.environ['MAVLINK20'] = '1'
 from pymavlink import mavutil
 
 import mavutil2
+import mission_protocol
 from gen_terrain import DROPOUT, LOW_SIGNAL_QUALITY
+
+PING_NSE = 0.05
+PING_DELAY = 0.3
+
+DVL_NSE = 0.01
+DVL_DELAY = 0.2
 
 
 def start_ardusub(speedup: float, heavy: bool):
@@ -45,8 +60,8 @@ def send_distance_sensor_msg(conn, distance_cm: int, signal_quality: int):
     Send a DISTANCE_SENSOR msg.
 
     AP_RangeFinder_MAVLink behaviors:
-      * max is the smallest of RNGFND1_MAX_CM and packet.max_distance_cm
-      * min is the largest of RNGFND1_MIN_CM and packet.min_distance_cm
+      * max is the smallest of RNGFND1_MAX_CM (sitl.params) and packet.max_distance_cm (50cm, 0.05m)
+      * min is the largest of RNGFND1_MIN_CM (sitl.params) and packet.min_distance_cm (5000cm, 50m)
       * readings outside (min, max) are marked "out of range"
       * covariance is ignored
     """
@@ -58,8 +73,12 @@ def send_distance_sensor_msg(conn, distance_cm: int, signal_quality: int):
 def calc_rf(terrain_z: float, sub_z: float) -> tuple[float, int]:
     """
     Calc rangefinder and signal_quality
+
+    Future: look at attitude and adjust rf
     """
-    rf = sub_z - terrain_z + -0.095
+
+    # Add noise
+    rf = sub_z - terrain_z + np.random.normal(scale=PING_NSE)
 
     # Send signal_quality, typically 100
     signal_quality = 100
@@ -135,15 +154,23 @@ class SimRunner:
         apm2.MAVLINK_MSG_ID_GLOBAL_POSITION_INT: 5,
     }
 
-    def __init__(self, speedup: float, duration: int, terrain, delay: float, heavy: bool):
+    RECV_MSGS = [
+        'GLOBAL_POSITION_INT',
+        'STATUSTEXT'
+    ]
+
+    def __init__(self, speedup: float, duration: int, terrain, delay: float, heavy: bool, depth: float,
+                 mission: Optional[str], mode: int, params_file: str):
         # self.clock is used by self.print, so set this early
         self.clock = None
 
-        self.print(f'Run at {speedup}X wall time for {duration} seconds, terrain {terrain}, Ping delay {delay}')
+        self.print(f'Run at {speedup}X wall time for {duration} seconds, terrain {terrain}, sensor delay {delay}')
 
         self.duration = duration
         self.terrain = terrain
         self.delay = delay
+        self.depth = depth
+        self.mode = mode
         self.sub_z_history = SubZHistory()
 
         self.print('Start ArduSub')
@@ -157,7 +184,7 @@ class SimRunner:
         self.conn.wait_heartbeat()
 
         self.print('Set parameters')
-        param_list = mavutil2.ParameterList('params/sitl.params')
+        param_list = mavutil2.ParameterList(params_file)
         param_list.set_all(self.conn)
 
         self.print('Verify parameters')
@@ -177,30 +204,58 @@ class SimRunner:
         for msg_type, msg_rate in SimRunner.REQUEST_MSGS.items():
             mavutil2.set_message_interval(self.conn, msg_type, msg_rate)
 
-        self.print('Wait for GLOBAL_POSITION_INT')
-        self.clock = mavutil2.get_sim_clock(self.conn, speedup)
-
         self.print('Wait for GPS fix')
         self.conn.wait_gps_fix()
+
+        if mission and mission != '':
+            self.print('Upload mission')
+            mission_protocol.upload_mission(self.conn, mission)
 
         # Continuously send RC inputs to a UDP port
         self.print('Start RC thread')
         self.rc_thread = mavutil2.RCThread(speedup)
         self.rc_thread.start()
 
+        self.print('Start sim clock')
+        self.clock = mavutil2.get_sim_clock(self.conn, speedup)
+
     def print(self, message):
-        sim_time = self.clock.time_since_boot_s() if self.clock else 0.0
+        sim_time = self.clock.rough_time_s() if self.clock else 0.0
         print(f'[{sim_time :.2f}] {message}')
+
+    @staticmethod
+    def severity_name(severity: int) -> str:
+        if severity == apm2.MAV_SEVERITY_CRITICAL:
+            return 'CRITICAL'
+        elif severity == apm2.MAV_SEVERITY_WARNING:
+            return 'WARNING'
+        elif severity == apm2.MAV_SEVERITY_INFO:
+            return 'INFO'
+        else:
+            return 'unknown'
+
+    def process_msg(self, msg):
+        if msg.get_type() == 'GLOBAL_POSITION_INT':
+            self.clock.update(msg.time_boot_ms)
+            self.sub_z_history.add(msg.time_boot_ms * 0.001, msg.relative_alt * 0.001)
+        elif msg.get_type() == 'STATUSTEXT':
+            self.print(f'{SimRunner.severity_name(msg.severity)}: {msg.text}')
 
     def send_rangefinder_readings(self):
         """
         Send rf readings until we reach the time limit
+        After N readings change modes
         """
+
+        count_readings = 0
 
         # Open stamped_terrain.csv
         with open('stamped_terrain.csv', mode='w', newline='') as outfile:
-            datawriter = csv.writer(outfile, delimiter=',', quotechar='|')
-            datawriter.writerow(['TimeUS', 'terrain_z', 'sub_z', 'rf'])
+            # Write a log with the TimeUS, the terrain_z at that time, the sub_z at that time, and the calculated
+            # rf reading. Note that rf reading will appear to arrive at the destination a bit later, controlled
+            # by self.delay.
+            datawriter = csv.writer(outfile, delimiter=',', quotechar='|', lineterminator='\n')
+            datawriter.writerow(['TimeUS', 'terrain_cm', 'sub_cm', 'rf_cm', 'signal_quality'])
 
             # Continue until we hit the time limit
             while True:
@@ -215,61 +270,66 @@ class SimRunner:
 
                     for row in datareader:
                         # Drain all GLOBAL_POSITION_INT messages and add (z, time_boot_s) tuples to our z history
-                        while gpi_msg := self.conn.recv_match(type='GLOBAL_POSITION_INT', blocking=False):
-                            wall_time = getattr(gpi_msg, '_timestamp', 0.0)
-                            self.clock.update(gpi_msg.time_boot_ms, wall_time)
-                            self.sub_z_history.add(gpi_msg.time_boot_ms / 1000.0, gpi_msg.alt / 1000.0)
+                        while msg := self.conn.recv_match(type=SimRunner.RECV_MSGS, blocking=False):
+                            self.process_msg(msg)
 
                         # Bootstrap: if we don't have enough history, wait for more
                         while self.sub_z_history.length_s() <= self.delay:
-                            gpi_msg = self.conn.recv_match(type='GLOBAL_POSITION_INT', blocking=True)
-                            wall_time = getattr(gpi_msg, '_timestamp', 0.0)
-                            self.clock.update(gpi_msg.time_boot_ms, wall_time)
-                            self.sub_z_history.add(gpi_msg.time_boot_ms / 1000.0, gpi_msg.alt / 1000.0)
+                            self.process_msg(self.conn.recv_match(type=SimRunner.RECV_MSGS, blocking=True))
+
+                        current_time = self.clock.monotonic_time_s()
+
+                        # Get the sub.z reading at time t, where t = now - delay
+                        delayed_time = current_time - self.delay
+                        sub_z = self.sub_z_history.get(delayed_time)
+                        assert sub_z is not None
 
                         # terrain_z is above/below seafloor depth
                         terrain_z = float(row[0])
 
                         if terrain_z == DROPOUT:
-                            pass
+                            # Do not send a DISTANCE_SENSOR message; note this in the logs
+                            rf_cm, signal_quality = -1, -1
 
                         elif terrain_z == LOW_SIGNAL_QUALITY:
-                            send_distance_sensor_msg(self.conn, 555, 10)
+                            rf_cm, signal_quality = 555, 10
+                            send_distance_sensor_msg(self.conn, rf_cm, signal_quality)
 
                         else:
-                            # Get the sub.z reading at time t, where t = now - delay
-                            sub_z = self.sub_z_history.get(self.clock.time_since_boot_s() - self.delay)
-                            assert sub_z is not None
-
                             rf, signal_quality = calc_rf(terrain_z, sub_z)
+                            rf_cm = int(rf * 100.0)
+                            send_distance_sensor_msg(self.conn, rf_cm, signal_quality)
 
-                            send_distance_sensor_msg(self.conn, int(rf * 100), signal_quality)
+                        # Log using delayed_time
+                        time_us: int = int(delayed_time * 1000000)
+                        datawriter.writerow([time_us, terrain_z * 100.0, sub_z * 100.0, rf_cm, signal_quality])
+                        outfile.flush()
 
-                            # For logging purposes, record bad sub_z measurements as 0.0
-                            log_sub_z = 0.0 if sub_z is None else sub_z
-
-                            # Generate TimeUS (time-since-boot in microseconds) to match the CTUN msg
-                            datawriter.writerow([self.clock.time_since_boot_us(), terrain_z, log_sub_z, rf])
-                            outfile.flush()
+                        # At N readings change modes
+                        count_readings += 1
+                        if count_readings == 10:
+                            self.print(f'Set mode to {self.mode}')
+                            self.conn.set_mode(self.mode)
 
                         self.clock.sleep(interval)
 
-                        if self.clock.time_since_boot_s() > self.duration:
+                        if self.clock.rough_time_s() > self.duration:
                             return
 
     def run(self):
-        self.print('Set mode to manual')
-        self.conn.set_mode_manual()
+        self.print('Set mode to DEPTH_HOLD')
+        self.conn.set_mode(2)
 
         self.print('Arm')
         self.conn.arducopter_arm()
         self.conn.motors_armed_wait()
 
-        self.print('Dive to -10m')
-        mavutil2.move_to_depth(self.conn, self.rc_thread, -10)
+        self.print(f'Dive to {self.depth}m')
+        mavutil2.move_to_depth(self.conn, self.rc_thread, self.depth)
 
-        self.print('Set mode to RNG_HOLD')
-        self.conn.set_mode(21)
+        # Wait for the EKF to produce a good solution (required for CIRCLE and AUTO)
+        self.print('Wait for EKF solution')
+        self.clock.sleep(25)
 
         self.print('Send rangefinder readings')
         self.send_rangefinder_readings()
@@ -282,12 +342,17 @@ class SimRunner:
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=__doc__)
     parser.add_argument('--speedup', type=float, default=1.0, help='SIM_SPEEDUP value')
-    parser.add_argument('--time', type=int, default=60, help='how long to run the simulation')
+    parser.add_argument('--time', type=int, default=60, help='How long to run the simulation')
     parser.add_argument('--terrain', type=str, default='terrain/zeros.csv', help='terrain file')
-    parser.add_argument('--delay', type=float, default=0.8, help='Ping sensor delay in seconds')
+    parser.add_argument('--delay', type=float, default=0.3, help='Sensor delay in seconds, default 0.3')
     parser.add_argument('--heavy', action='store_true', help='Use heavy (6dof) config')
+    parser.add_argument('--depth', type=float, default=-10.0, help='Run depth, default -10m')
+    parser.add_argument('--mission', type=str, default=None, help='Upload mission items')
+    parser.add_argument('--mode', type=int, default=21, help='Mode, default 21 (rng_hold)')
+    parser.add_argument('--params', type=str, default='params/sitl.params', help='Params file')
     args = parser.parse_args()
-    runner = SimRunner(args.speedup, args.time, args.terrain, args.delay, args.heavy)
+    runner = SimRunner(args.speedup, args.time, args.terrain, args.delay, args.heavy, args.depth, args.mission,
+                       args.mode, args.params)
     runner.run()
 
 

@@ -105,23 +105,51 @@ class SimClock:
     Provide a few tools around the ArduSub time-since-boot clock
     """
 
-    def __init__(self, time_boot_ms: int, wall_time: float, speedup: float):
-        self.msg_sim_time = time_boot_ms / 1000.0
-        self.msg_wall_time = wall_time
-        self.speedup = speedup
+    TIME_FACTOR = 0.9  # Be conservative in our estimates
 
-    def update(self, time_boot_ms: int, wall_time: float):
-        self.msg_sim_time = time_boot_ms / 1000.0
-        self.msg_wall_time = wall_time
+    def __init__(self, speedup: float):
+        # Desired speedup
+        self.speedup: float = speedup
 
-    def time_since_boot_s(self) -> float:
-        return self.msg_sim_time + (time.time() - self.msg_wall_time) * self.speedup
+        # Simulation time in ms from a MAVLink message
+        self.msg_time_boot_ms: int = 0
 
-    def time_since_boot_ms(self) -> int:
-        return int(self.time_since_boot_s() * 1000)
+        # Wall time when self.msg_sim_time was last updated
+        self.wall_time: float = 0
 
-    def time_since_boot_us(self) -> int:
-        return self.time_since_boot_ms() * 1000
+        # Return value from the last call to monotonic_time_s()
+        self.last_monotonic_time_s: float = 0
+
+    def update(self, msg_time_boot_ms: int):
+        # Protect against messages out-of-order, delays, etc. (though I've never seen this)
+        if msg_time_boot_ms < self.msg_time_boot_ms:
+            print('ignore time going backwards')
+            return
+        elif msg_time_boot_ms == self.msg_time_boot_ms:
+            print(f'ignore time standing still')
+            return
+
+        self.msg_time_boot_ms = msg_time_boot_ms
+        self.wall_time = time.time()
+
+    def rough_time_s(self) -> float:
+        """Rough estimate of time-since-boot, may not be monotonic"""
+        return self.msg_time_boot_ms / 1000.0 + (time.time() - self.wall_time) * self.speedup
+
+    def conservative_time_s(self) -> float:
+        """A more conservative estimate of time-since-boot, may not be monotonic"""
+        return self.msg_time_boot_ms / 1000.0 + (time.time() - self.wall_time) * self.speedup * SimClock.TIME_FACTOR
+
+    def monotonic_time_s(self) -> float:
+        """Time-since-boot, guaranteed to be monotonic"""
+        estimate = self.conservative_time_s()
+        if estimate <= self.last_monotonic_time_s:
+            # Force monotonicity
+            print(f'[{estimate :.2f}] Clock too fast by {self.last_monotonic_time_s - estimate :.4f} seconds')
+            estimate = self.last_monotonic_time_s + 0.001
+
+        self.last_monotonic_time_s = estimate
+        return estimate
 
     def sleep(self, d: float):
         time.sleep(d / self.speedup)
@@ -131,9 +159,10 @@ def get_sim_clock(conn: mavutil.mavfile, speedup: float) -> SimClock:
     """
     Wait for a GLOBAL_POSITION_INT message and use it to create a SimClock object
     """
+    sim_clock = SimClock(speedup)
     gpi_msg = conn.recv_match(type='GLOBAL_POSITION_INT', blocking=True)
-    wall_time = getattr(gpi_msg, '_timestamp', 0.0)
-    return SimClock(gpi_msg.time_boot_ms, wall_time, speedup)
+    sim_clock.update(gpi_msg.time_boot_ms)
+    return sim_clock
 
 
 class BadParameterValueException(Exception):
@@ -182,6 +211,7 @@ class ParameterList:
         Send PARAM_SET messages
         """
         for p in self.params:
+            print(f'Set {p.param_id} to {p.param_value}')
             conn.param_set_send(p.param_id, p.param_value)
 
     def fetch_all(self, conn: mavutil.mavfile):
