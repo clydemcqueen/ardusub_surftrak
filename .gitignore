@@ -13,3 +13,7 @@ results/sitl/
 
 # Ignore tmp folder
 tmp/
+
+# Ignore raw log files
+*.BIN
+*.tlog

@@ -49,7 +49,7 @@ def write_low_signal_quality(writer, t: float):
 def gen_zeros():
     # Open for writing. Do not translate newlines.
     with open(csv_path('zeros'), mode='w', newline='') as csvfile:
-        datawriter = csv.writer(csvfile, delimiter=',', quotechar='|')
+        datawriter = csv.writer(csvfile, delimiter=',', quotechar='|', lineterminator='\n')
 
         # Write the interval
         datawriter.writerow([INTERVAL])
@@ -61,7 +61,7 @@ def gen_zeros():
 def gen_trapezoid(tallest_bump: float, rate: float, t=10.0):
     # Open for writing. Do not translate newlines.
     with open(csv_path('trapezoid'), mode='w', newline='') as csvfile:
-        datawriter = csv.writer(csvfile, delimiter=',', quotechar='|')
+        datawriter = csv.writer(csvfile, delimiter=',', quotechar='|', lineterminator='\n')
 
         # Write the interval
         datawriter.writerow([INTERVAL])
@@ -76,7 +76,7 @@ def gen_trapezoid(tallest_bump: float, rate: float, t=10.0):
 def gen_sawtooth(tallest_bump: float, rate: float, t=10.0):
     # Open for writing. Do not translate newlines.
     with open(csv_path('sawtooth'), mode='w', newline='') as csvfile:
-        datawriter = csv.writer(csvfile, delimiter=',', quotechar='|')
+        datawriter = csv.writer(csvfile, delimiter=',', quotechar='|', lineterminator='\n')
 
         # Write the interval
         datawriter.writerow([INTERVAL])
@@ -90,7 +90,7 @@ def gen_sawtooth(tallest_bump: float, rate: float, t=10.0):
 def gen_square(tallest_bump: float, t=10.0):
     # Open for writing. Do not translate newlines.
     with open(csv_path('square'), mode='w', newline='') as csvfile:
-        datawriter = csv.writer(csvfile, delimiter=',', quotechar='|')
+        datawriter = csv.writer(csvfile, delimiter=',', quotechar='|', lineterminator='\n')
 
         # Write the interval
         datawriter.writerow([INTERVAL])
@@ -101,10 +101,10 @@ def gen_square(tallest_bump: float, t=10.0):
 
 
 # Stress PID controllers, test dropout handling
-def gen_stress(tallest_bump=8.0, t=2.0):
+def gen_stress(tallest_bump=4.0, t=2.0):
     # Open for writing. Do not translate newlines.
     with open(csv_path('stress'), mode='w', newline='') as csvfile:
-        datawriter = csv.writer(csvfile, delimiter=',', quotechar='|')
+        datawriter = csv.writer(csvfile, delimiter=',', quotechar='|', lineterminator='\n')
 
         # Write the interval
         datawriter.writerow([INTERVAL])
@@ -133,7 +133,7 @@ def gen_stress(tallest_bump=8.0, t=2.0):
 def gen_test_signal_quality():
     # Open for writing. Do not translate newlines.
     with open(csv_path('test_signal_quality'), mode='w', newline='') as csvfile:
-        datawriter = csv.writer(csvfile, delimiter=',', quotechar='|')
+        datawriter = csv.writer(csvfile, delimiter=',', quotechar='|', lineterminator='\n')
 
         # Write the interval
         datawriter.writerow([INTERVAL])
@@ -152,13 +152,10 @@ def gen_test_signal_quality():
 
 
 def main():
-    tallest_bump = 4.0
-    rate = 0.25  # m / sec
-
     gen_zeros()
-    gen_trapezoid(tallest_bump, rate)
-    gen_sawtooth(tallest_bump, rate)
-    gen_square(tallest_bump)
+    gen_trapezoid(5.0, 0.2, 20.0)
+    gen_sawtooth(1.0, 0.2)
+    gen_square(1.0, 20.0)
     gen_stress()
     gen_test_signal_quality()
 

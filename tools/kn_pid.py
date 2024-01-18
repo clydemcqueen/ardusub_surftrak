@@ -21,6 +21,7 @@ def main():
     print_gains(args.Ku, args.Tu, 'Classic', 0.6, 1.2, 0.075)
     print_gains(args.Ku, args.Tu, 'Some overshoot', 0.33, 0.66, 0.11)
     print_gains(args.Ku, args.Tu, 'No overshoot', 0.2, 0.4, 0.066)
+    print_gains(args.Ku, args.Tu, 'PD', 0.8, 0.0, 0.1)
 
 
 if __name__ == '__main__':
