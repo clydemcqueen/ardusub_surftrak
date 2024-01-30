@@ -1,6 +1,9 @@
-1	1	SCR_USER1	500.0	9	# Rangefinder target, in cm
+1	1	SCR_USER1	100.0	9	# Rangefinder target, in cm
 1	1	SCR_USER2	10.0	9	# Rangefinder target increment / decrement amount, in cm
 
 1	1	BTN0_SFUNCTION	108	2	# XBox controller shift-A: set target to SCR_USER1
 1	1	BTN1_SFUNCTION	109	2	# XBox controller shift-B: increment target by SCR_USER2
 1	1	BTN2_SFUNCTION	110	2	# XBox controller shift-X: decrement target by SCR_USER2
+
+1	1	PILOT_SPEED_DN	50	4	# Max speed down is 50 cm/s
+1	1	PILOT_SPEED_UP	50	4	# Max speed up is 50 cm/s

@@ -82,7 +82,7 @@ class RFSender:
 
                         rf, signal_quality = calc_rf(terrain_z, sub_z)
 
-                        print(f'{rf :.2f}, {signal_quality}')
+                        print(f'Terrain {terrain_z :.2f}, Sub {sub_z :.2f}, RF {rf :.2f}, SQ {signal_quality}')
                         send_distance_sensor_msg(self.conn, int(rf * 100), signal_quality)
 
                     time.sleep(interval)

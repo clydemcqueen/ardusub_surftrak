@@ -1,20 +1,9 @@
-1	1	LOG_BITMASK	180222	4		# Also log PSCx
+1	1	LOG_BITMASK	180222	4		# Also log PSCx for debugging
 
 1	1	SURFTRAK_DEPTH	-100	4	# Minimum surftrak depth is 1m
 
-1	1	SURFTRAK_Q_NSE	10.0	9	# KF process noise (RMS)
-1	1	SURFTRAK_R_NSE	0.1	9		# KF measurement noise (RMS)
-
-# Set terrain calc mode
-# 0: raw rf reading
-# 1: lowpass filter
-# 2: Kalman filter
-# 3: Kalman filter with project forward
-1	1	SURFTRAK_CALC	0	4
-1	1	SURFTRAK_DELAY	0.3	9
-
-# Current Lutris ABXY button settings:
-# 1	1	BTN0_FUNCTION	0	2	# XBox controller A: shift (bug?)
+# Current Lutris (Seattle Aquarium) ABXY button settings:
+# 1	1	BTN0_FUNCTION	0	2	# XBox controller A: shift
 # 1	1	BTN1_FUNCTION	5	2	# XBox controller B: manual
 # 1	1	BTN2_FUNCTION	7	2	# XBox controller X: depth hold
 # 1	1	BTN3_FUNCTION	6	2	# XBox controller Y: stabilize

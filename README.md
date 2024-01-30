@@ -33,7 +33,8 @@ In these cases RNG_HOLD will set a new rangefinder target when the condition is 
 
 To avoid hitting the surface and resetting the rangefinder target, RNG_HOLD mode will keep the sub below RNGHOLD_DEPTH
 by allowing the sub to get closer to the rising seafloor. When the seafloor falls again the sub will follow it down.
-The default SURFACE_DEPTH is -10 cm and the default RNGHOLD_DEPTH is -50 cm.
+The default SURFACE_DEPTH is -10 cm and the default RNGHOLD_DEPTH is -50 cm, so it is unlikely that the sub will hit
+the surface while in RNG_HOLD mode.
 
 If the rangefinder becomes unhealthy while RNG_HOLD mode is active, then RNG_HOLD stops adjusting the target depth.
 When the rangefinder becomes healthy again then RNG_HOLD will resume tracking the seafloor.
@@ -58,7 +59,7 @@ You should see the following in QGroundControl:
 * If the depth > RNGHOLD_DEPTH you will see this warning message: **descend below n.nn meters to hold range**
 * When the target rangefinder is set or changed you will see this info message: **rangefinder target is n.nn meters**
 
-Proposed changes to QGroundControl:
+Proposed changes to QGroundControl (see [code](https://github.com/mavlink/qgroundcontrol/compare/master...clydemcqueen:qgroundcontrol:clyde_surftrak)):
 * RNG_HOLD appears as "Range hold" in the mode dropdown menu.
 * The current rangefinder target can be displayed in the instrument panel.
 
@@ -90,21 +91,21 @@ PILOT_ACCEL_Z 500
 WPNAV_ACCEL_Z 500
 ~~~
 
-# Simulations
+## Testing in Simulation
 
-You can run tests using [ArduPilot SITL](https://ardupilot.org/dev/docs/using-sitl-for-ardupilot-testing.html).
-The SITL runs are fully automated and support several features:
+You can run tests using the scripts provided in this repo, including [sitl_runner.py](sitl_runner.py).
+The test runs are fully automated and support several features:
 * they can run faster than wall-clock time
 * you can provide custom terrain, change sensor delay, add dropouts, etc.
 * you can test missions (AUTO mode)
 
-## Install
+### Install
 
 Install ArduPilot from https://github.com/clydemcqueen/ardupilot in `~/ardupilot`
 
 Install https://github.com/clydemcqueen/ardusub_surftrak in `~/projects/ardusub_surftrak`
 
-## Procedure
+### Procedure
 
 Checkout and build the `clyde_surftrak` branch of ardupilot:
 ~~~
@@ -115,10 +116,10 @@ waf sub
 ~~~
 
 The [sitl_runner.py](sitl_runner.py) script does the following:
-* starts ardusub
+* starts ArduSub
 * loads parameters from [params/sitl.params](params/sitl.params)
-* reboots ardusub
-* runs the simulation, injecting rangefinder data
+* reboots ArduSub
+* runs the simulation, injecting rangefinder data using MAVLink
 * quits the simulation after a period of time
 
 This example will run a simulation with a sawtooth terrain, 20X faster than wall-clock time, for 150 simulated seconds:
@@ -139,7 +140,7 @@ export ARDUPILOT_HOME=~/ardupilot
 source run_all.bash
 ~~~
 
-## Results
+### Results
 
 There are 6 pre-generated terrain files:
 * trapezoid: 5m rise, ramp up and down
@@ -175,3 +176,22 @@ Variables graphed in the rangefinder section:
 Variables graphed in the climb rate section:
 * CTUN.DCRt: the target climb rate value that the controller is trying to achieve
 * CTUN.CRt: the climb rate that will be sent to the thrusters
+
+## Testing on Hardware
+
+It is still early days! Caveat emptor!
+
+RNG_HOLD is running on a branch that has not been merged into master.
+The current plan is to release it on ArduSub 4.5, which contains many changes from the current ArduSub 4.1.1.
+
+As of 30-Jan-2024 RNG_HOLD is running on 2 ROVs:
+* A BlueROV2 Heavy (Navigator + Pi4) with a Blue Robotics Ping v1 depth finder
+* A BlueROV2 Heavy (Navigator + Pi4) with a payload skid and a Water Linked A50 Performance DVL
+
+To install:
+* Build from source using the toolchain appropriate to your FCU
+* Save your parameters so that you can undo the installation
+* Install the firmware using BlueOS
+* [Map RNG_HOLD to a button on the joystick](lutris/test_surf.params)
+* [Tune for your depth finder, e.g., the A50](lutris/test_KPv.params)
+* Optional: install the [RNG_HOLD Lua script](lua/README.md) to add additional controls
