@@ -1,6 +1,6 @@
 # Range Hold Flight Mode
 
-We propose a [range hold (RNG_HOLD) mode for ArduSub](https://github.com/clydemcqueen/ardupilot/tree/clyde_surftrak)
+We propose a [range hold (RNG_HOLD) mode for ArduSub](https://github.com/ArduPilot/ardupilot/pull/23435)
 inspired by the [surface tracking feature in ArduCopter](https://ardupilot.org/copter/docs/terrain-following-manual-modes.html).
 
 ## Operation
@@ -70,7 +70,9 @@ Both use the ArduPilot AP_RangeFinder_MAVLink backend.
 
 Notes on the AP_RangeFinder_MAVLink backend:
 * The DISTANCE_SENSOR.covariance, horizontal_fov and vertical_fov fields are ignored. All readings are considered good if they are between min and max.
-* The DISTANCE_SENSOR.min_distance and max_distance fields override the RNGFND1_MIN_CM and RNGFND1_MAX_CM parameters.
+* The rangefinder max distance is `min(DISTANCE_SENSOR.max_distance, RNGFND1_MAX_CM)`
+* Similarly, the rangefinder min distance is `max(DISTANCE_SENSOR.min_distance, RNGFND1_MIN_CM)`
+* The default value for RNGFND1_MAX_CM is 700 cm, so if you can't get RNG_HOLD to work far away from the seafloor, check this value!
 * The DISTANCE_SENSOR.time_boot_ms is ignored, the current time is used instead.
 
 We measured sensor delay for the Ping v1 at ~800ms and for the A50 at ~300ms. A long delay can result in depth
@@ -195,3 +197,5 @@ To install:
 * [Map RNG_HOLD to a button on the joystick](lutris/test_surf.params)
 * [Tune for your depth finder, e.g., the A50](lutris/test_KPv.params)
 * Optional: install the [RNG_HOLD Lua script](lua/README.md) to add additional controls
+
+See the [tracking bug](https://github.com/clydemcqueen/ardusub_surftrak/issues/4) for status of the various components.

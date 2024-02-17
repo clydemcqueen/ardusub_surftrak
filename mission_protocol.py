@@ -131,6 +131,8 @@ def wp_to_mission_item_int(wp):
 
 
 def mission_from_path(path):
+    # mavwp can read the "mission plain-text file format" described here:
+    # https://mavlink.io/en/file_formats/
     waypoint_loader = mavwp.MAVWPLoader(target_system=1, target_component=1)
     waypoint_loader.load(path)
     return [wp_to_mission_item_int(x) for x in waypoint_loader.wpoints]
