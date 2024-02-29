@@ -7,7 +7,7 @@ Interesting sub modes:
       2             alt_hold
       3             auto
       7             circle
-     21             rng_hold
+     21             surftrak
 """
 
 import argparse
@@ -348,7 +348,7 @@ def main():
     parser.add_argument('--heavy', action='store_true', help='Use heavy (6dof) config')
     parser.add_argument('--depth', type=float, default=-10.0, help='Run depth, default -10m')
     parser.add_argument('--mission', type=str, default=None, help='Upload mission items')
-    parser.add_argument('--mode', type=int, default=21, help='Mode, default 21 (rng_hold)')
+    parser.add_argument('--mode', type=int, default=21, help='Mode, default 21 (surftrak)')
     parser.add_argument('--params', type=str, default='params/sitl.params', help='Params file')
     args = parser.parse_args()
     runner = SimRunner(args.speedup, args.time, args.terrain, args.delay, args.heavy, args.depth, args.mission,

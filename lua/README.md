@@ -1,12 +1,12 @@
 # Surftrak Lua Script
 
-The [rng_hold_buttons.lua](rng_hold_buttons.lua) script allows you to use the joystick to set the rangefinder target
+The [surftrak_buttons.lua](surftrak_buttons.lua) script allows you to use the joystick to set the rangefinder target
 to a specific value, and to increment or decrement that value.
 
 > This is experimental and subject to change!
 
 > Be careful using this script! The ROV will move at PILOT_SPEED_DN/UP cm / second to achieve the rangefinder target.
-> Even with reasonable settings (PILOT_SPEED_DN = 50 cm/s) I recommend diving under pilot control > until you are fairly
+> Even with reasonable settings (PILOT_SPEED_DN = 50 cm/s) I recommend diving under pilot control until you are fairly
 > close to the target, then using the script to set the target exactly.
 
 ## Installation
@@ -35,7 +35,7 @@ PILOT_SPEED_DN	50    # Max speed down is 50 cm/s
 PILOT_SPEED_UP	50    # Max speed up is 50 cm/s
 ~~~
 
-Copy [rng_hold_buttons.lua](rng_hold_buttons.lua) to the `/root/.config/ardupilot-manager/firmware/scripts` folder
+Copy [surftrak_buttons.lua](surftrak_buttons.lua) to the `/root/.config/ardupilot-manager/firmware/scripts` folder
 in the blueos-core Docker container on the Raspberry Pi. You can do this using BlueOS:
 * Turn on _Pirate mode_
 * Start the _File Browser_
@@ -63,6 +63,6 @@ The script will run several error checks:
 * If the new rangefinder target is < 80cm it will be set to 80cm
 
 ArduSub will ignore the new rangefinder target if any of the following are true:
-* The sub is not in RNG_HOLD mode
-* The sub is higher than RNGHOLD_DEPTH
+* The sub is not in SURFTRAK mode
+* The sub is higher than SURFTRAK_DEPTH
 * The new rangefinder target is < RNGFNDx_MIN or > RNGFNDx_MAX
