@@ -77,8 +77,9 @@ Notes on the AP_RangeFinder_MAVLink backend:
 * The DISTANCE_SENSOR.time_boot_ms is ignored, the current time is used instead.
 
 We measured sensor delay for the Ping v1 at ~800ms and for the A50 at ~300ms. A long delay can result in depth
-oscillation. You can reduce this oscillation by modifying the PSC_JERK_Z and PILOT_ACCEL_Z. The goal is to get the KPv
-value less than 1.0, perhaps around 0.8. Here's the math:
+oscillation. You can reduce this oscillation by modifying the PSC_JERK_Z and PILOT_ACCEL_Z. The goal is to get the
+[KPv value](https://github.com/ArduPilot/ardupilot/blob/15cea77e98d51a5371c38115ee56eb7a85ab26ff/libraries/AP_Math/control.cpp#L301)
+less than 1.0, ideally around 0.8. Here's the math:
 
 ~~~
 jerk_cm = PSC_JERK_Z * 100

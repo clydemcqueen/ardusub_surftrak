@@ -1,0 +1,45 @@
+# MAV rangefinder
+1	1	RNGFND1_TYPE	10	2
+1	1	RNGFND1_MAX_CM	5000	4
+1	1	RNGFND1_MIN_CM	50	4
+1	1	RNGFND1_POS_X	-0.18	9
+1	1	RNGFND1_POS_Y	0.0	9
+1	1	RNGFND1_POS_Z	-0.095	9
+
+# Default SITL barometer noise is too high, adjust
+1	1	SIM_BARO_RND	0.01	9
+
+# Also log PSCx
+1	1	LOG_BITMASK	180222	4
+
+# Terrain failsafe kicks in if the rangefinder fails, set action to 1 (hold) instead of 0 (disarm)
+1	1	FS_TERRAIN_ENAB	1	4
+
+# Minimum surftrak depth is 1m
+1	1	SURFTRAK_DEPTH	-100	4
+
+# Terrain Kalman filter noise (RMS)
+1	1	SURFTRAK_Q_NSE	10.0	9
+1	1	SURFTRAK_R_NSE	0.1	9
+
+# Set terrain calc mode
+# 0: raw rf reading
+# 1: lowpass filter
+# 2: Kalman filter
+# 3: Kalman filter with project forward
+1	1	SURFTRAK_CALC	1	4
+
+# Defaults, KPa = 4, KPv = 2, some wiggle at 0.3s delay
+# Note that PSC_JERK_Z applies to both surftrak and auto
+# 1	1	PSC_JERK_Z	8.0	9
+# 1	1	PILOT_ACCEL_Z	200	4
+# 1	1	WPNAV_ACCEL_Z	250.0	9
+
+# KPa = 1.6, KPv = 0.8, nice results at 0.3s delay
+1	1	PSC_JERK_Z	8.0	9
+1	1	PILOT_ACCEL_Z	500	4
+1	1	WPNAV_ACCEL_Z	500.0	9
+
+# Auto speed up & down should be the same
+1	1	WPNAV_SPEED_DN	100.0	9
+1	1	WPNAV_SPEED_UP	100.0	9
