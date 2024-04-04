@@ -35,7 +35,7 @@ PILOT_SPEED_DN	50    # Max speed down is 50 cm/s
 PILOT_SPEED_UP	50    # Max speed up is 50 cm/s
 ~~~
 
-Copy [surftrak_buttons.lua](surftrak_buttons.lua) to the `/root/.config/ardupilot-manager/firmware/scripts` folder
+Copy [surftrak_buttons.lua](surftrak_buttons.lua) to the `/root/.config/blueos/ardupilot-manager/firmware/scripts` folder
 in the blueos-core Docker container on the Raspberry Pi. You can do this using BlueOS:
 * Turn on _Pirate mode_
 * Start the _File Browser_
