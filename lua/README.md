@@ -39,7 +39,7 @@ Copy [surftrak_buttons.lua](surftrak_buttons.lua) to the `/root/.config/blueos/a
 in the blueos-core Docker container on the Raspberry Pi. You can do this using BlueOS:
 * Turn on _Pirate mode_
 * Start the _File Browser_
-* Drill into _configs_, _ardupilot_, _firmware_, _scripts_
+* Drill into _configs_, _ardupilot-manager_, _firmware_, _scripts_
 * Upload the script to this folder
 
 Reboot ArduSub to load and run the script.
