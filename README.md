@@ -3,10 +3,39 @@
 We propose a [range hold (SURFTRAK) flight mode for ArduSub](https://github.com/ArduPilot/ardupilot/pull/23435)
 inspired by the [surface tracking feature in ArduCopter](https://ardupilot.org/copter/docs/terrain-following-manual-modes.html).
 
+## Installing SURFTRAK
+
+### Step 1: Verify that ArduSub can see your rangefinder
+
+If ArduSub can see your rangefinder, it will typically send `RANGEFINDER` MAVLink messages to QGC:
+
+![RANGEFINDER messages in QGC](images/qgc_rangefinder_msgs.png)
+
+If you are not seeing `RANGEFINDER` messages in QGC then make sure that your rangefinder is sending information to ArduSub.
+Exactly how this happens depends on your rangefinder.
+
+* Blue Robotics Ping1D: [make sure that "MAVLink Distances" is turned on](https://discuss.bluerobotics.com/t/alpha-release-simple-ping2-survey-extension/15794/3)
+* WaterLinked A50 DVL: [make sure that "Send range data through MAVLink" is turned on](https://bluerobotics.com/learn/dvl-a50-integration/#setting-the-rovs-starting-position) 
+
+Note that the `RNGFND1_MAX` parameter defaults to 700cm, which is pretty low. You can change it in BlueOS or QGC:
+
+![RNGFND1 parameters in QGC](images/qgc_rngfnd_params.png)
+
+### Step 2: Install ArduSub 4.5 BETA
+
+* Save your parameters so that you can undo the installation
+* Install BETA firmware using BlueOS
+
+### Step 3: Adjust parameters TODO
+
+* [Map SURFTRAK to a button on the joystick](lutris/test_surf.params)
+* [Tune for your depth finder, e.g., the A50](lutris/test_KPv.params)
+* Optional: install the [SURFTRAK Lua script](lua/README.md) to add additional controls
+
 ## Operation
 
-The range hold (SURFTRAK) mode is similar to altitude hold (ALT_HOLD), but uses healthy rangefinder readings to
-adjust that target depth as the seafloor rises and falls.
+SURFTRAK mode is similar to ALT_HOLD (altitude hold), but uses healthy rangefinder readings to
+adjust the depth target as the seafloor rises and falls.
 
 Normal operation:
 * The pilot flies the sub to the desired altitude above the seafloor and switches to SURFTRAK mode.
@@ -181,22 +210,3 @@ Variables graphed in the rangefinder section:
 Variables graphed in the climb rate section:
 * CTUN.DCRt: the target climb rate value that the controller is trying to achieve
 * CTUN.CRt: the climb rate that will be sent to the thrusters
-
-## Testing on Hardware
-
-It is still early days! Caveat emptor!
-
-SURFTRAK is on master and the Sub-4.5 branch.
-
-As of 29-Feb-2024 it is currently building on the BETA track,
-e.g., see the [navigator beta build](https://firmware.ardupilot.org/Sub/beta/navigator/git-version.txt).
-
-
-To install:
-* Save your parameters so that you can undo the installation
-* Install BETA firmware using BlueOS
-* [Map SURFTRAK to a button on the joystick](lutris/test_surf.params)
-* [Tune for your depth finder, e.g., the A50](lutris/test_KPv.params)
-* Optional: install the [SURFTRAK Lua script](lua/README.md) to add additional controls
-
-See the [tracking bug](https://github.com/clydemcqueen/ardusub_surftrak/issues/4) for status of the various components.
