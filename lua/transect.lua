@@ -101,6 +101,12 @@ local function respond_to_joystick_buttons()
 end
 
 local function set_posvel_target(pos)
+    -- Do not try to set the target if the rangefinder is unhealthy to avoid spamming the pilot
+    -- The rangefinder may time out every 10s, see https://github.com/bluerobotics/BlueOS-Water-Linked-DVL/issues/44
+    if not sub:rangefinder_alt_ok() then
+        return
+    end
+
     local vel_fwd = WPNAV_SPEED:get() * 0.01
     local heading = ahrs:get_yaw()
 
