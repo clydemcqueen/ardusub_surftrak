@@ -1,0 +1,42 @@
+# Parameters to test Lutris behavior in SITL with rf_sender.py
+
+# Terminal 1:
+# cd ~/projects/ardusub_surftrak
+# ./rf_sender.py
+
+# Terminal 2:
+# cd ~/ap/master
+# mkdir -p run_sitl/scripts
+# cd run_sitl
+# l n -s ~/projects/ardusub_surftrak/lua/transect.lua scripts/transect.lua
+# nice ../Tools/autotest/sim_vehicle.py -G -D -l 47.6302,-122.3982391,-0.1,270 -v Sub -f vectored --out "127.0.0.1:14551" -w --add-param-file ~/projects/ardusub_surftrak/params/lutris_sitl.params
+
+# TODO why are the PSC parameters in sub.parm and bluerov2-heavy-4_0_0.params different?
+
+# MAV rangefinder
+RNGFND1_TYPE 10
+RNGFND1_MAX_CM 5000
+RNGFND1_MIN_CM 50
+RNGFND1_POS_X -0.18
+RNGFND1_POS_Y 0.0
+RNGFND1_POS_Z -0.095
+
+# The rest of these are Lutris parameters:
+
+# KPa = 1.6, KPv = 0.8, reasonable results at 0.3s delay
+PSC_JERK_Z 8.0
+PILOT_ACCEL_Z 500
+WPNAV_ACCEL_Z 500.0
+
+SCR_ENABLE 1
+
+WPNAV_SPEED_DN 30.0
+WPNAV_SPEED_UP 30.0
+WPNAV_SPEED 10.0
+
+PSC_ACCZ_FF 0
+PSC_ACCZ_I 0.1
+PSC_ACCZ_P 0.5
+PSC_POSXY_P 2
+PSC_POSZ_P 1
+PSC_VELZ_P 5
