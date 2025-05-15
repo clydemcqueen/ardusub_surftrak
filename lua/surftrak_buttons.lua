@@ -4,6 +4,8 @@ Map 3 joystick buttons to ArduSub SURFTRAK (range hold) functions.
 See the README.md file for parameter settings.
 ]]--
 
+lower_limit_cm = 50
+
 function update()
   local action_target_cm = param:get('SCR_USER1')
   if action_target_cm == nil then
@@ -11,8 +13,8 @@ function update()
     return update, 10000
   end
 
-  if action_target_cm < 100 then
-    gcs:send_text(6, "surftrak_buttons.lua: SCR_USER1 must be 100 (1m) or more")
+  if action_target_cm < lower_limit_cm then
+    gcs:send_text(6, "surftrak_buttons.lua: SCR_USER1 is too low")
     return update, 10000
   end
 
@@ -55,14 +57,16 @@ function update()
   if net_inc ~= 0 then
     local curr_target_cm = sub:get_rangefinder_target_cm()
     local next_target_cm = curr_target_cm + net_inc * action_inc_cm
-    if next_target_cm < 80 then
-      gcs:send_text(6, "surftrak_buttons.lua: lower limit is 80cm")
-      next_target_cm = 80
+    if next_target_cm < lower_limit_cm then
+      gcs:send_text(6, "surftrak_buttons.lua: hit lower limit")
+      next_target_cm = lower_limit_cm
     end
     sub:set_rangefinder_target_cm(next_target_cm)
   end
 
   return update, 200
 end
+
+gcs:send_text(6, "surftrak_buttons.lua running")
 
 return update(), 200
