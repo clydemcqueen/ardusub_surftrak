@@ -31,8 +31,8 @@ local function update()
         desired_target = nil
     end
 
-    -- Silently do nothing if we are in the wrong flight mode or the rangefinder is unhealthy
-    if vehicle:get_mode() ~= SURFTRAK_MODE_NUM or not sub:rangefinder_alt_ok() then
+    -- Silently do nothing if we are disarmed, in the wrong flight mode, or the rangefinder is unhealthy
+    if not arming:is_armed() or vehicle:get_mode() ~= SURFTRAK_MODE_NUM or not sub:rangefinder_alt_ok() then
         return update, UPDATE_MS
     end
 
