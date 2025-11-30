@@ -17,3 +17,6 @@ tmp/
 # Ignore raw log files
 *.BIN
 *.tlog
+
+# Ignore Python venv
+venv/
