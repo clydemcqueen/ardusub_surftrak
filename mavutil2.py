@@ -69,30 +69,45 @@ def move_to_depth(conn: mavutil.mavfile, rc_thread: RCThread, target: float):
     rc_thread.set_rc_channels(1500)
 
 
-def get_boot_count(conn: mavutil.mavfile):
+def get_boot_count(conn: mavutil.mavfile, timeout: float = 10.0):
     """
     Get the value of the STAT_BOOTCNT parameter
 
-    TODO add a timeout
+    :param conn: MAVLink connection
+    :param timeout: Timeout in seconds (default: 10.0)
+    :raises TimeoutError: If STAT_BOOTCNT is not received within the timeout period
     """
     conn.param_fetch_one('STAT_BOOTCNT')
-    while msg := conn.recv_match(type='PARAM_VALUE', blocking=True):
-        if msg.param_id == 'STAT_BOOTCNT':
-            return int(msg.param_value)
+    start_time = time.time()
+    
+    while time.time() - start_time < timeout:
+        msg = conn.recv_match(type='PARAM_VALUE', blocking=False)
+        if msg:
+            if msg.param_id == 'STAT_BOOTCNT':
+                return int(msg.param_value)
+        else:
+            # Small sleep to avoid busy-waiting
+            time.sleep(0.01)
+    
+    # Timeout occurred
+    raise TimeoutError('Timeout waiting for STAT_BOOTCNT parameter')
 
 
-def reboot_autopilot(conn: mavutil.mavfile):
+def reboot_autopilot(conn: mavutil.mavfile, timeout: float = 30.0):
     """
     Reboot the autopilot and verify that it actually happened
 
-    TODO add a timeout
+    :param conn: MAVLink connection
+    :param timeout: Timeout in seconds (default: 30.0)
+    :raises TimeoutError: If boot count parameters are not received within the timeout period
+    :raises RebootFailedException: If the boot count does not increment as expected
     """
-    prev_boot_count = get_boot_count(conn)
+    prev_boot_count = get_boot_count(conn, timeout=timeout)
 
     conn.reboot_autopilot()
     conn.wait_heartbeat()
 
-    curr_boot_count = get_boot_count(conn)
+    curr_boot_count = get_boot_count(conn, timeout=timeout)
     if curr_boot_count - prev_boot_count == 1:
         print(f'STAT_BOOTCNT was {prev_boot_count}, now {curr_boot_count}, reboot detected')
         return
@@ -183,7 +198,7 @@ class Parameter:
 
 class ParameterList:
     @staticmethod
-    def parse_param(line: str) -> Parameter or None:
+    def parse_param(line: str) -> Parameter|None:
         # Split on whitespace (tabs, spaces)
         fields = line.split()
         return Parameter(fields[2], float(fields[3]), int(fields[4]))
@@ -249,14 +264,27 @@ class ParameterList:
         for p in self.params:
             p.verified = False
 
-    def verify_all(self, conn: mavutil.mavfile):
+    def verify_all(self, conn: mavutil.mavfile, timeout: float = 10.0):
         """
-        Listen for PARAM_VALUE messages, and wait until all parameters have been verified
+        Listen for PARAM_VALUE messages and wait until all parameters have been verified
 
-        TODO add a timeout
+        :param conn: MAVLink connection
+        :param timeout: Timeout in seconds (default: 10.0)
+        :raises TimeoutError: If not all parameters are verified within the timeout period
         """
         self.reset_verified()
-        while msg := conn.recv_match(type='PARAM_VALUE', blocking=True):
-            self.verify(msg.param_id, msg.param_value)
-            if self.all_verified():
-                return
+        start_time = time.time()
+        
+        while time.time() - start_time < timeout:
+            msg = conn.recv_match(type='PARAM_VALUE', blocking=False)
+            if msg:
+                self.verify(msg.param_id, msg.param_value)
+                if self.all_verified():
+                    return
+            else:
+                # Small sleep to avoid busy-waiting
+                time.sleep(0.01)
+        
+        # Timeout occurred
+        unverified = [p.param_id for p in self.params if not p.verified]
+        raise TimeoutError(f'Timeout waiting for parameters to verify. Unverified: {unverified}')
