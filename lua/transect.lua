@@ -25,10 +25,10 @@
 
     Example joystick button settings:
     param set BTN0_FUNCTION    1.0         # shift
-    param set BTN11_SFUNCTION  108         # script_1
-    param set BTN12_SFUNCTION  109         # script_2
-    param set BTN13_SFUNCTION  111         # script_4
-    param set BTN14_SFUNCTION  110         # script_3
+    param set BTN11_SFUNCTION  108         # script_1   Increment rf_target by 10 cm
+    param set BTN12_SFUNCTION  109         # script_2   Decrement rf_target by 10 cm
+    param set BTN13_SFUNCTION  111         # script_4   Increment speed by 10 cm/s
+    param set BTN14_SFUNCTION  110         # script_3   Decrement speed by 10 cm/s
 
 ]]--
 
@@ -108,7 +108,7 @@ local function set_posvel_target(pos)
     end
 
     local vel_fwd = WPNAV_SPEED:get() * 0.01
-    local heading = ahrs:get_yaw()
+    local heading = ahrs:get_yaw_rad()
 
     -- project forward along heading to calc target xy position
     local dist = vel_fwd * FUTURE_S
@@ -143,7 +143,7 @@ local function update()
         -- A good rangefinder reading is required to initialize the rangefinder target and take control
         if sub:rangefinder_alt_ok() then
             if rf_target == nil then
-                set_rf_target(rangefinder:distance_cm_orient(ROTATION_PITCH_270) * 0.01)
+                set_rf_target(rangefinder:distance_orient(ROTATION_PITCH_270))
             end
 
             if not in_control then
