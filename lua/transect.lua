@@ -1,11 +1,9 @@
 --[[
     Use GUIDED mode with ABOVE_TERRAIN frame to run transects at a constant distance above the seafloor
 
-    TODO move this comment to README.md
-
     Requirements:
     * Good positioning system, typically a DVL
-    * Down-facing rangefinder
+    * Down-facing rangefinder, typically the same DVL
 
     Typical operation:
     * Dive to the start of the transect, at the target distance off the seafloor
@@ -21,14 +19,15 @@
 
     Troubleshooting:
     * Too close to the surface? The ROV must be below SURFTRAK_DEPTH
-    * Too far away from the seafloor? Check RNGFND1_MAX_CM
+    * Too far away from the seafloor? Check RNGFND1_MAX
 
     Example joystick button settings:
     param set BTN0_FUNCTION    1.0         # shift
-    param set BTN11_SFUNCTION  108         # script_1   Increment rf_target by 10 cm
-    param set BTN12_SFUNCTION  109         # script_2   Decrement rf_target by 10 cm
-    param set BTN13_SFUNCTION  111         # script_4   Increment speed by 10 cm/s
-    param set BTN14_SFUNCTION  110         # script_3   Decrement speed by 10 cm/s
+    param set BTN11_SFUNCTION  108         # shift-dpad-up      script_1: increment rf_target by 10 cm
+    param set BTN12_SFUNCTION  109         # shift-dpad-down    script_2: decrement rf_target by 10 cm
+    param set BTN13_SFUNCTION  111         # shift-dpad-right   script_4: increment speed by 10 cm/s
+    param set BTN14_SFUNCTION  110         # shift-dpad-left    script_3: decrement speed by 10 cm/s
+    param set BTN2_SFUNCTION   11          # shift-X            GUIDED mode
 
 ]]--
 
@@ -39,7 +38,8 @@ if not SURFTRAK_DEPTH:init('SURFTRAK_DEPTH') or not WPNAV_SPEED:init('WPNAV_SPEE
     return
 end
 
-local UPDATE_TIME_MS = 100      -- time between updates
+local WARMUP_TIME_MS = 5000     -- update time as EKF is warming up
+local UPDATE_TIME_MS = 100      -- update time
 local FUTURE_S = 10             -- target is a point along the heading, distance = speed * FUTURE_S
 
 local GUIDED_MODE_NUM = 4       -- sub GUIDED mode number
@@ -60,6 +60,7 @@ local BTN_INC_SPEED = 3
 local BTN_DEC_SPEED = 4
 
 local rf_target                 -- rangefinder target
+local running = false           -- if true, we are running the update loop at 10Hz
 local in_control = false        -- if true, we are sending posvel targets at 10Hz
 
 local function clamp(val, min, max)
@@ -132,8 +133,15 @@ local function update()
 
     local pos = ahrs:get_relative_position_NED_origin()
     if pos == nil then
-        -- Silently wait for EKF to warm up, etc.
-        return update, UPDATE_TIME_MS
+        -- Wait for EKF to warm up
+        running = false
+        -- gcs:send_text(6, string.format("transect.lua: wait for EKF to warm up"))
+        return update, WARMUP_TIME_MS
+    end
+
+    if not running then
+        running = true
+        gcs:send_text(6, string.format("transect.lua: main loop running"))
     end
 
     -- Convert cm above origin to NED (m below origin)
@@ -172,6 +180,6 @@ local function update()
     return update, UPDATE_TIME_MS
 end
 
-gcs:send_text(6,"transect.lua running")
+gcs:send_text(6,"transect.lua loaded")
 
 return update()
