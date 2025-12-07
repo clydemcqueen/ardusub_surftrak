@@ -40,6 +40,7 @@ end
 
 local WARMUP_TIME_MS = 5000     -- update time as EKF is warming up
 local UPDATE_TIME_MS = 100      -- update time
+local RF_TIMEOUT_MS = 2000      -- timeout for rangefinder_alt_ok() to be false before stopping
 local FUTURE_S = 10             -- target is a point along the heading, distance = speed * FUTURE_S
 
 local GUIDED_MODE_NUM = 4       -- sub GUIDED mode number
@@ -62,6 +63,7 @@ local BTN_DEC_SPEED = 4
 local rf_target                 -- rangefinder target
 local running = false           -- if true, we are running the update loop at 10Hz
 local in_control = false        -- if true, we are sending posvel targets at 10Hz
+local rf_healthy_ms             -- last good rangefinder reading
 
 local function clamp(val, min, max)
     if val < min then return min end
@@ -150,6 +152,8 @@ local function update()
     if arming:is_armed() and vehicle:get_mode() == GUIDED_MODE_NUM and pos:z() >= surftrak_depth then
         -- A good rangefinder reading is required to initialize the rangefinder target and take control
         if sub:rangefinder_alt_ok() then
+            rf_healthy_ms = millis()
+            
             if rf_target == nil then
                 set_rf_target(rangefinder:distance_orient(ROTATION_PITCH_270))
             end
@@ -157,6 +161,14 @@ local function update()
             if not in_control then
                 gcs:send_text(6, string.format("transect.lua: moving forward at %.0f cms", WPNAV_SPEED:get()))
                 in_control = true
+            end
+        else
+            -- Rangefinder is not healthy
+            if in_control then
+                if millis() - rf_healthy_ms > RF_TIMEOUT_MS then
+                    gcs:send_text(3, "transect.lua: rangefinder timeout, stopping")
+                    in_control = false
+                end
             end
         end
 
