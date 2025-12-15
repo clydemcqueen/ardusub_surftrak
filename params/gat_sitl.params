@@ -12,6 +12,7 @@ BTN12_SFUNCTION     109         # shift-dpad-down    script_2: decrement rf_targ
 BTN13_SFUNCTION     111         # shift-dpad-right   script_4: increment speed by 10 cm/s
 BTN14_SFUNCTION     110         # shift-dpad-left    script_3: decrement speed by 10 cm/s
 BTN2_SFUNCTION      11          # shift-X            GUIDED mode
+BTN3_SFUNCTION      13          # shift-Y            SURFTRAK mode
 
 WPNAV_SPEED_DN 30.0
 WPNAV_SPEED_UP 30.0
