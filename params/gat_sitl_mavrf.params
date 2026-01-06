@@ -1,0 +1,38 @@
+# Parameters to test transect.lua in SITL (sans Gazebo), for ArduSub version 4.7, with a remote MAVLink rangefinder
+
+# Shells:
+# ../Tools/autotest/sim_vehicle.py -L RATBeach -v ArduSub -f vectored --out=udp:0.0.0.0:14550 --out=udp:0.0.0.0:14551 --wipe --add-param-file=$HOME/projects/ardusub_surftrak/params/gat_sitl_mavrf.params
+# ./rf_sender.py
+# ./QGroundControl.AppImage
+
+# Scripts:
+# mkdir scripts; cd scripts
+# ln -s $HOME/projects/ardusub_surftrak/lua/get_rangefinder.lua get_rangefinder.lua
+# ln -s $HOME/projects/ardusub_surftrak/lua/transect3.lua transect3.lua
+
+SCR_ENABLE 1
+
+BTN0_FUNCTION       1.0         # shift
+BTN11_SFUNCTION     108         # shift-dpad-up      script_1: increment rf_target by 10 cm
+BTN12_SFUNCTION     109         # shift-dpad-down    script_2: decrement rf_target by 10 cm
+BTN13_SFUNCTION     111         # shift-dpad-right   script_4: increment speed by 10 cm/s
+BTN14_SFUNCTION     110         # shift-dpad-left    script_3: decrement speed by 10 cm/s
+BTN2_SFUNCTION      11          # shift-X            GUIDED mode
+BTN3_SFUNCTION      13          # shift-Y            SURFTRAK mode
+
+# Centimeters per second
+WPNAV_SPEED_DN 30.0
+WPNAV_SPEED_UP 30.0
+WPNAV_SPEED 20.0
+
+# MAVLink rangefinder
+RNGFND1_TYPE 10
+
+# Meters
+RNGFND1_MIN 0.2
+RNGFND1_MAX 50.0
+
+# Minimize oscillations, KPa = 1.6, KPv = 0.8
+PSC_JERK_Z 8.0
+PILOT_ACCEL_Z 500
+WPNAV_ACCEL_Z 500

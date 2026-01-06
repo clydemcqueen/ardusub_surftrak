@@ -1,0 +1,28 @@
+{
+    "Lua.diagnostics.globals": [
+        "ahrs",
+        "arming",
+        "battery",
+        "button",
+        "gcs",
+        "gps",
+        "logger",
+        "micros",
+        "millis",
+        "mission",
+        "notify",
+        "param",
+        "Parameter",
+        "rangefinder",
+        "rc",
+        "relay",
+        "serial",
+        "srv_channels",
+        "sub",
+        "terrain",
+        "vehicle",
+        "Vector2f",
+        "Vector3f",
+        "Location"
+    ]
+}

@@ -1,8 +1,13 @@
-# Parameters to test transect.lua in SITL (sans Gazebo)
+# Parameters to test transect.lua in SITL (sans Gazebo), for ArduSub version 4.7
 
 # Shells:
-# ../Tools/autotest/sim_vehicle.py -L RATBeach -v ArduSub -f vectored --model=JSON --out=udp:0.0.0.0:14550 --wipe --add-param-file=$HOME/workspaces/ardusub_antigrav_ws/ardusub_surftrak/params/gat_sitl.params
+# ../Tools/autotest/sim_vehicle.py -L RATBeach -v ArduSub -f vectored --out=udp:0.0.0.0:14550 --out=udp:0.0.0.0:14551 --wipe --add-param-file=$HOME/projects/ardusub_surftrak/params/gat_sitl.params
 # ./QGroundControl.AppImage
+
+# Scripts:
+# mkdir scripts; cd scripts
+# ln -s $HOME/projects/ardusub_surftrak/lua/get_rangefinder.lua get_rangefinder.lua
+# ln -s $HOME/projects/ardusub_surftrak/lua/transect3.lua transect3.lua
 
 SCR_ENABLE 1
 
@@ -14,6 +19,11 @@ BTN14_SFUNCTION     110         # shift-dpad-left    script_3: decrement speed b
 BTN2_SFUNCTION      11          # shift-X            GUIDED mode
 BTN3_SFUNCTION      13          # shift-Y            SURFTRAK mode
 
+# Centimeters per second
 WPNAV_SPEED_DN 30.0
 WPNAV_SPEED_UP 30.0
 WPNAV_SPEED 20.0
+
+# Meters
+RNGFND1_MIN 0.2
+RNGFND1_MAX 50.0
