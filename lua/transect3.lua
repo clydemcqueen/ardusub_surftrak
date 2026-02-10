@@ -97,7 +97,7 @@ local function respond_to_joystick_buttons()
 end
 
 local function set_posvel_target(pos)
-  -- Call vehicle:set_target_posvel_terrain, return true if successful
+  -- Call vehicle:set_target_posvel_NED_terrain, return true if successful
   local vel_fwd = wpnav_speed_p:get() * 0.01
   local heading = ahrs:get_yaw_rad()
 
@@ -113,7 +113,7 @@ local function set_posvel_target(pos)
   target_vel:y(vel_fwd * math.sin(heading))
   target_vel:z(0)
 
-  return vehicle:set_target_posvel_terrain(target_pos, target_vel)
+  return vehicle:set_target_posvel_NED_terrain(target_pos, target_vel)
 end
 
 local function update_guided_mode(rf_reading)
