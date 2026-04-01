@@ -177,6 +177,7 @@ class SimRunner:
         start_ardusub(speedup, heavy)
 
         self.print('Connect to ArduSub')
+        # autoreconnect=True is required for TCP connections where we might reboot later
         self.conn = mavutil.mavlink_connection(
             'tcp:127.0.0.1:5760', source_system=255, source_component=0, autoreconnect=True)
 

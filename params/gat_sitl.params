@@ -20,9 +20,9 @@ BTN2_SFUNCTION      11          # shift-X            GUIDED mode
 BTN3_SFUNCTION      13          # shift-Y            SURFTRAK mode
 
 # Centimeters per second
-WPNAV_SPEED_DN 30.0
-WPNAV_SPEED_UP 30.0
-WPNAV_SPEED 20.0
+WP_SPD_DN 30.0
+WP_SPD_UP 30.0
+WP_SPD 20.0
 
 # Meters
 RNGFND1_MIN 0.2

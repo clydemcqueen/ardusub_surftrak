@@ -21,9 +21,9 @@ BTN2_SFUNCTION      11          # shift-X            GUIDED mode
 BTN3_SFUNCTION      13          # shift-Y            SURFTRAK mode
 
 # Centimeters per second
-WPNAV_SPEED_DN 30.0
-WPNAV_SPEED_UP 30.0
-WPNAV_SPEED 20.0
+WP_SPD_DN 30.0
+WP_SPD_UP 30.0
+WP_SPD 20.0
 
 # MAVLink rangefinder
 RNGFND1_TYPE 10
@@ -35,4 +35,4 @@ RNGFND1_MAX 50.0
 # Minimize oscillations, KPa = 1.6, KPv = 0.8
 PSC_JERK_Z 8.0
 PILOT_ACCEL_Z 500
-WPNAV_ACCEL_Z 500
+WP_ACC_Z 500
