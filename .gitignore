@@ -19,4 +19,4 @@ tmp/
 *.tlog
 
 # Ignore Python venv
-venv/
+.venv/
