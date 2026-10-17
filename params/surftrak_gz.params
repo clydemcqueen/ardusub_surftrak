@@ -1,0 +1,40 @@
+# Parameters to test Lua scripts in Gazebo, for ArduSub 4.5
+
+# Setup is mostly described in bluerov2_gz README
+# Use colcon to build {ardupilot_gazebo, ros2}, {bluerov2_gz, main}; set up env vars, cp surftrak3.lua to scripts dir
+
+# Shells:
+# gz sim -v 3 -r bluerov2_ping.world
+# ../Tools/autotest/sim_vehicle.py -L RATBeach -v ArduSub -f vectored --model=JSON --out=udp:0.0.0.0:14550 --wipe --add-param-file=$HOME/ardusub_surftrak/params/surftrak_gz.params
+# ./QGroundControl.AppImage
+
+# Setting up scripts:
+# mkdir scripts; cd scripts
+# ln -s $HOME/ardusub_surftrak/lua/surftrak3.lua surftrak3.lua
+
+SCR_ENABLE          1
+
+# Set up Gazebo (JSON) rangefinder, adjust the min and max
+RNGFND1_TYPE        100
+RNGFND1_FUNCTION    0
+RNGFND1_MAX_CM      5000
+RNGFND1_MIN_CM      20
+
+BTN0_FUNCTION       0           # A                  MANUAL mode
+BTN3_SFUNCTION      13          # shift-Y            SURFTRAK mode
+BTN14_SFUNCTION     108         # shift-dpad-right   script_1: set rf_target to SCR_USER1
+BTN11_SFUNCTION     109         # shift-dpad-up      script_2: increment rf_target by SCR_USER2
+BTN12_SFUNCTION     110         # shift-dpad-down    script_3: decrement rf_target by SCR_USER2
+
+# Reduce baro noise
+SIM_BARO_RND        0.02
+
+# Typical Lutris and Nereo parameters
+PILOT_SPEED_UP      50          # vel up limit, cm/s
+PILOT_SPEED_DN      50          # vel down limit, cm/s
+PILOT_ACCEL_Z       500         # accel limit, cm/s^2
+PSC_JERK_Z          8.0         # jerk limit, cm/s^3
+
+# surftrak3.lua parameters
+SCR_USER1           200         # default rf_target, cm
+SCR_USER2           10          # increment / decrement, cm
