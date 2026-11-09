@@ -1,6 +1,6 @@
-# `surftrak3.lua`
+# `surftrak3b.lua`
 
-The [surftrak3.lua](surftrak3.lua) script lets you specify a _desired_ rangefinder target, and it will constantly
+The [surftrak3b.lua](surftrak3b.lua) script lets you specify a _desired_ rangefinder target, and it will constantly
 update the _current_ rangefinder target as needed, simplifying the process of maintaining a constant distance to the
 seafloor.
 
@@ -47,14 +47,14 @@ PILOT_SPEED_DN	50    # Max speed down is 50 cm/s
 PILOT_SPEED_UP	50    # Max speed up is 50 cm/s
 ~~~
 
-Copy `surftrak3.lua` to the `/root/.config/blueos/ardupilot-manager/firmware/scripts` folder
+Copy `surftrak3b.lua` to the `/root/.config/blueos/ardupilot-manager/firmware/scripts` folder
 in the blueos-core Docker container on the Raspberry Pi. You can do this using BlueOS:
 * Turn on _Pirate mode_
 * Start the _File Browser_
 * Drill into _configs_, _ardupilot-manager_, _firmware_, _scripts_
 * Upload the script to this folder
 
-Reboot ArduSub to load and run the script. You should see "surftrak3.lua loaded" appear in the boot messages.
+Reboot ArduSub to load and run the script. You should see "surftrak3b.lua loaded" appear in the boot messages.
 
 ## Pilot Interface
 
