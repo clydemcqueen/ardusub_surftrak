@@ -20,11 +20,21 @@ RNGFND1_FUNCTION    0
 RNGFND1_MAX_CM      5000
 RNGFND1_MIN_CM      20
 
-BTN0_FUNCTION       0           # A                  MANUAL mode
-BTN3_SFUNCTION      13          # shift-Y            SURFTRAK mode
-BTN14_SFUNCTION     108         # shift-dpad-right   script_1: set rf_target to SCR_USER1
-BTN11_SFUNCTION     109         # shift-dpad-up      script_2: increment rf_target by SCR_USER2
-BTN12_SFUNCTION     110         # shift-dpad-down    script_3: decrement rf_target by SCR_USER2
+# Controller button assignments for QGC
+# For Cockpit: upload dbl-mapping.json
+BTN0_FUNCTION    1    # A                   shift
+BTN0_SFUNCTION   1    # shift A             shift
+BTN1_FUNCTION    5    # B                   MANUAL
+BTN1_SFUNCTION   8    # shift B             POSHOLD
+BTN2_FUNCTION    7    # X                   ALT_HOLD
+BTN2_SFUNCTION   11   # shift X             GUIDED
+BTN3_FUNCTION    6    # Y                   STABILIZE
+BTN3_SFUNCTION   13   # shift Y             SURFTRAK
+
+BTN11_SFUNCTION  109  # shift-dpad-up       script_2
+BTN12_SFUNCTION  110  # shift-dpad-down     script_3
+BTN13_SFUNCTION  111  # shift-dpad-left     script_4
+BTN14_SFUNCTION  108  # shift-dpad-right    script_1
 
 # Reduce baro noise
 SIM_BARO_RND        0.02
