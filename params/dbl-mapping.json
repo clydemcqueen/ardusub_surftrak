@@ -1,0 +1,54 @@
+{
+  "name": "Discovery Bay joystick mapping",
+  "hash": "00000000-0000-0000-0000-000000000002",
+  "_comment": "Tested with Cockpit 1.19. Hash key is ignored.",
+  "axesCorrespondencies": {
+    "0": {
+      "action": { "protocol": "data-lake-variable", "id": "inputs/mavlink/axis-r", "name": "Axis R" },
+      "min": -1000,
+      "max": 1000
+    },
+    "1": {
+      "action": { "protocol": "data-lake-variable", "id": "inputs/mavlink/axis-x", "name": "Axis X" },
+      "min": 1000,
+      "max": -1000
+    },
+    "2": {
+      "action": { "protocol": "data-lake-variable", "id": "inputs/mavlink/axis-y", "name": "Axis Y" },
+      "min": -1000,
+      "max": 1000
+    },
+    "3": {
+      "action": { "protocol": "data-lake-variable", "id": "inputs/mavlink/axis-z", "name": "Axis Z" },
+      "min": 1000,
+      "max": 0
+    }
+  },
+  "buttonsCorrespondencies": {
+    "regular": {
+      "0": { "action": { "protocol": "cockpit-modifier-key", "id": "shift", "name": "Shift" } },
+      "1": { "action": { "protocol": "mavlink-manual-control", "id": "Mode manual", "name": "Mode manual" } },
+      "2": { "action": { "protocol": "mavlink-manual-control", "id": "Mode depth hold", "name": "Mode depth hold" } },
+      "3": { "action": { "protocol": "mavlink-manual-control", "id": "Mode stabilize", "name": "Mode stabilize" } },
+      "4": { "action": { "protocol": "mavlink-manual-control", "id": "Mount tilt down", "name": "Mount tilt down" } },
+      "5": { "action": { "protocol": "mavlink-manual-control", "id": "Mount tilt up", "name": "Mount tilt up" } },
+      "8": { "action": { "protocol": "mavlink-manual-control", "id": "Disarm", "name": "Disarm" } },
+      "9": { "action": { "protocol": "mavlink-manual-control", "id": "Arm", "name": "Arm" } },
+      "10": { "action": { "protocol": "mavlink-manual-control", "id": "Mount center", "name": "Mount center" } },
+      "12": { "action": { "protocol": "mavlink-manual-control", "id": "Gain inc", "name": "Gain inc" } },
+      "13": { "action": { "protocol": "mavlink-manual-control", "id": "Gain dec", "name": "Gain dec" } },
+      "14": { "action": { "protocol": "mavlink-manual-control", "id": "Lights1 dimmer", "name": "Lights1 dimmer" } },
+      "15": { "action": { "protocol": "mavlink-manual-control", "id": "Lights1 brighter", "name": "Lights1 brighter" } },
+      "16": { "action": { "protocol": "cockpit-action", "id": "shift", "name": "shift" } }
+    },
+    "shift": {
+      "1": { "action": { "protocol": "mavlink-manual-control", "id": "Mode poshold", "name": "Mode poshold" } },
+      "2": { "action": { "protocol": "mavlink-manual-control", "id": "Mode guided", "name": "Mode guided" } },
+      "3": { "action": { "protocol": "mavlink-manual-control", "id": "Mode surftrak", "name": "Mode surftrak" } },
+      "12": { "action": { "protocol": "mavlink-manual-control", "id": "Script 2", "name": "Script 2" } },
+      "13": { "action": { "protocol": "mavlink-manual-control", "id": "Script 3", "name": "Script 3" } },
+      "14": { "action": { "protocol": "mavlink-manual-control", "id": "Script 4", "name": "Script 4" } },
+      "15": { "action": { "protocol": "mavlink-manual-control", "id": "Script 1", "name": "Script 1" } }
+    }
+  }
+}
