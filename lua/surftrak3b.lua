@@ -1,7 +1,7 @@
 --[[
   Sticky rangefinder target for ArduSub SURFTRAK mode.
 
-  Works with ArduSub 4.5.X.
+  Works with ArduSub 4.5.X and 4.7.X.
 
   The sticky rangefinder target...
   * starts as nil
